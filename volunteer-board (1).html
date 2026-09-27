@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Волонтёрская доска</title>
+<style>
+  :root{
+    --sky-top:#241338; --sky-mid:#3a1f4d; --sky-low:#7a4468; --sky-horizon:#c4826f;
+    --card:rgba(255,255,255,0.07); --card-border:rgba(255,255,255,0.14);
+    --text:#f3ecf5; --muted:#c7b9cf;
+    --accent:#e0a08a; --accent-dark:#c47f68; --border:rgba(255,255,255,0.16);
+    --chip:rgba(255,255,255,0.10); --danger:#e07a6b;
+    --page-bg:#1b1129;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px); background:var(--page-bg);}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--page-bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    min-height:100%;
+  }
+  .hero{
+    position:relative; overflow:hidden;
+    padding:calc(28px + env(safe-area-inset-top,0px)) 20px 46px;
+    background:
+      radial-gradient(circle at 82% 18%, rgba(244,236,216,0.9) 0 3px, transparent 4px),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 38%, var(--sky-low) 68%, var(--sky-horizon) 100%);
+  }
+  .hero::before{
+    content:""; position:absolute; inset:0;
+    background-image:
+      radial-gradient(1px 1px at 15% 20%, #f3e9ef 100%, transparent),
+      radial-gradient(1px 1px at 30% 35%, #f3e9ef 100%, transparent),
+      radial-gradient(1.5px 1.5px at 50% 15%, #f3e9ef 100%, transparent),
+      radial-gradient(1px 1px at 68% 30%, #f3e9ef 100%, transparent),
+      radial-gradient(1px 1px at 85% 45%, #f3e9ef 100%, transparent),
+      radial-gradient(1px 1px at 10% 45%, #f3e9ef 100%, transparent),
+      radial-gradient(1.5px 1.5px at 40% 10%, #f3e9ef 100%, transparent);
+    opacity:.8;
+  }
+  .hero::after{
+    content:""; position:absolute; left:0; right:0; bottom:0; height:64%;
+    background:
+      linear-gradient(180deg, transparent 0%, rgba(29,21,40,0.55) 60%, var(--page-bg) 100%);
+    clip-path:polygon(0% 100%,0% 55%,8% 40%,16% 58%,24% 35%,30% 52%,38% 30%,46% 50%,55% 20%,63% 46%,72% 32%,80% 55%,88% 38%,94% 58%,100% 45%,100% 100%);
+  }
+  .hero-content{position:relative; z-index:2; text-align:center;}
+  h1{font-size:22px; margin:0 0 4px; font-weight:600; letter-spacing:.2px; text-shadow:0 1px 12px rgba(0,0,0,.35);}
+  .sub{color:var(--muted); font-size:13.5px; margin:0; text-shadow:0 1px 10px rgba(0,0,0,.35);}
+  main{max-width:640px; margin:-26px auto 0; padding:0 16px 40px; position:relative; z-index:3;}
+  .card{
+    background:var(--card); border:1px solid var(--card-border); border-radius:16px;
+    padding:16px; margin-bottom:16px; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  .card h2{font-size:15px; margin:0 0 12px; font-weight:500; color:var(--text);}
+  label{display:block; font-size:12px; color:var(--muted); margin:10px 0 4px;}
+  input, textarea, select{
+    width:100%; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--border); background:rgba(0,0,0,0.18); color:var(--text);
+    font-size:14px; font-family:inherit;
+  }
+  input::placeholder, textarea::placeholder{color:var(--muted); opacity:.75;}
+  select option{background:#2b1d3a; color:var(--text);}
+  textarea{resize:vertical; min-height:60px;}
+  button{
+    font-family:inherit; cursor:pointer; border:none; border-radius:10px;
+    font-size:14px; font-weight:600;
+  }
+  .btn-primary{
+    background:var(--accent); color:#2b1710; padding:11px 16px; width:100%; margin-top:14px;
+  }
+  .btn-primary:active{background:var(--accent-dark);}
+  .btn-primary:disabled{opacity:.5;}
+  .search-row{display:flex; gap:8px;}
+  .search-row input{flex:1;}
+  .filters{display:flex; gap:8px; overflow-x:auto; margin-top:10px; padding-bottom:2px;}
+  .chip{
+    flex:0 0 auto; padding:6px 12px; border-radius:20px; border:1px solid var(--border);
+    background:var(--chip); color:var(--text); font-size:12px; white-space:nowrap;
+  }
+  .chip.active{background:var(--accent); color:#2b1710; border-color:var(--accent);}
+  .listing{
+    background:var(--card); border:1px solid var(--card-border); border-radius:16px;
+    padding:14px 16px; margin-bottom:12px; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  .listing-top{display:flex; justify-content:space-between; gap:8px; align-items:flex-start;}
+  .listing h3{margin:0; font-size:15.5px; font-weight:500; color:var(--text);}
+  .cat-badge{
+    font-size:11px; padding:3px 9px; border-radius:20px; background:var(--chip);
+    color:var(--accent); white-space:nowrap; flex:0 0 auto; border:1px solid var(--border);
+  }
+  .listing p{margin:8px 0; font-size:13.5px; color:var(--text); line-height:1.45;}
+  .meta{display:flex; flex-wrap:wrap; gap:10px; font-size:12px; color:var(--muted); margin-top:8px;}
+  .meta span{display:flex; align-items:center; gap:4px;}
+  .contact-btn{
+    margin-top:10px; background:var(--chip); color:var(--accent);
+    padding:8px 12px; font-size:13px; display:inline-block; border:1px solid var(--border);
+  }
+  .del{
+    background:transparent; color:var(--danger); font-size:12px; padding:4px 6px;
+  }
+  .empty{color:var(--muted); text-align:center; padding:30px 10px; font-size:14px;}
+  .count{color:var(--muted); font-size:12.5px; margin:2px 0 12px;}
+  .toggle-form{
+    display:flex; justify-content:space-between; align-items:center; cursor:pointer;
+  }
+  .toggle-form span{font-size:18px; color:var(--muted);}
+  #formBody{display:none;}
+  #formBody.open{display:block;}
+  .status{font-size:12px; color:var(--muted); margin-top:8px; min-height:14px;}
+  mark{background:rgba(224,160,138,0.35); color:#fff; padding:0 2px; border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-content">
+    <h1>🤝 Волонтёрская доска</h1>
+    <p class="sub">Публикуйте варианты волонтёрства и находите подходящие</p>
+  </div>
+</div>
+
+<main>
+
+  <div class="card">
+    <div class="toggle-form" id="toggleForm">
+      <h2>Добавить вариант волонтёрства</h2>
+      <span id="toggleIcon">+</span>
+    </div>
+    <div id="formBody">
+      <label>Название</label>
+      <input id="f-title" placeholder="Например: Помощь в приюте для животных">
+
+      <label>Категория</label>
+      <select id="f-cat">
+        <option value="Животные">Животные</option>
+        <option value="Экология">Экология</option>
+        <option value="Дети и образование">Дети и образование</option>
+        <option value="Пожилые люди">Пожилые люди</option>
+        <option value="Помощь людям">Помощь людям</option>
+        <option value="Мероприятия">Мероприятия</option>
+        <option value="Онлайн">Онлайн</option>
+        <option value="Другое">Другое</option>
+      </select>
+
+      <label>Описание</label>
+      <textarea id="f-desc" placeholder="Что нужно делать, когда, сколько времени занимает..."></textarea>
+
+      <label>Город / место</label>
+      <input id="f-loc" placeholder="Например: Москва, или «онлайн»">
+
+      <label>Контакт для связи</label>
+      <input id="f-contact" placeholder="Телефон, telegram, email...">
+
+      <button class="btn-primary" id="submitBtn">Опубликовать</button>
+      <div class="status" id="formStatus"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="search-row">
+      <input id="searchInput" placeholder="Поиск: слово, город, тип помощи...">
+    </div>
+    <div class="filters" id="filters"></div>
+  </div>
+
+  <div class="count" id="resultCount"></div>
+  <div id="list"></div>
+
+</main>
+
+<script>
+(function(){
+  const CATS = ["Все","Животные","Экология","Дети и образование","Пожилые люди","Помощь людям","Мероприятия","Онлайн","Другое"];
+  let activeCat = "Все";
+  let searchTerm = "";
+  let items = [];
+  let db = null;
+  let usingLocal = false;
+  const LOCAL_KEY = "volunteer_board_items_v1";
+
+  // ---- storage backends ----
+  function loadLocal(){
+    try{
+      const raw = localStorage.getItem(LOCAL_KEY);
+      items = raw ? JSON.parse(raw) : [];
+    }catch(e){ items = []; }
+    render();
+  }
+  function saveLocal(){
+    try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(items)); }catch(e){}
+  }
+
+  async function initDb(){
+    try{
+      if(!window.claude || !window.claude.use){ usingLocal = true; loadLocal(); return; }
+      db = await window.claude.use("db");
+      if(!db){ usingLocal = true; loadLocal(); return; }
+      const col = db.collection("opportunities");
+      col.orderBy("createdAt","desc").limit(500).onSnapshot(
+        (snap) => {
+          items = snap.docs.map(d => Object.assign({id:d.id}, d.data()));
+          render();
+        },
+        (err) => {
+          console.error("db subscribe error", err);
+          if(!usingLocal){ usingLocal = true; loadLocal(); }
+        }
+      );
+    }catch(e){
+      console.error(e);
+      usingLocal = true; loadLocal();
+    }
+  }
+
+  async function addItem(data){
+    if(usingLocal || !db){
+      data.id = "l" + Date.now();
+      items.unshift(data);
+      saveLocal();
+      render();
+      return true;
+    }
+    try{
+      await db.collection("opportunities").add(data);
+      return true;
+    }catch(e){
+      console.error("add failed", e);
+      return false;
+    }
+  }
+
+  async function deleteItem(id){
+    if(usingLocal || !db){
+      items = items.filter(i => i.id !== id);
+      saveLocal();
+      render();
+      return;
+    }
+    try{
+      await db.doc("opportunities/"+id).delete();
+    }catch(e){
+      console.error("delete failed", e);
+    }
+  }
+
+  // ---- UI: filters ----
+  const filtersEl = document.getElementById("filters");
+  CATS.forEach(cat => {
+    const b = document.createElement("button");
+    b.className = "chip" + (cat === activeCat ? " active" : "");
+    b.textContent = cat;
+    b.onclick = () => {
+      activeCat = cat;
+      [...filtersEl.children].forEach(c => c.classList.toggle("active", c.textContent === cat));
+      render();
+    };
+    filtersEl.appendChild(b);
+  });
+
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+    searchTerm = e.target.value.trim().toLowerCase();
+    render();
+  });
+
+  // ---- form toggle ----
+  const formBody = document.getElementById("formBody");
+  document.getElementById("toggleForm").onclick = () => {
+    formBody.classList.toggle("open");
+    document.getElementById("toggleIcon").textContent = formBody.classList.contains("open") ? "–" : "+";
+  };
+
+  // ---- submit ----
+  document.getElementById("submitBtn").onclick = async () => {
+    const title = document.getElementById("f-title").value.trim();
+    const cat = document.getElementById("f-cat").value;
+    const desc = document.getElementById("f-desc").value.trim();
+    const loc = document.getElementById("f-loc").value.trim();
+    const contact = document.getElementById("f-contact").value.trim();
+    const statusEl = document.getElementById("formStatus");
+    const btn = document.getElementById("submitBtn");
+
+    if(!title || !desc || !loc || !contact){
+      statusEl.textContent = "Заполните название, описание, место и контакт.";
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = "Публикация...";
+
+    const data = {
+      title, category: cat, description: desc, location: loc, contact,
+      createdAt: Date.now()
+    };
+
+    const ok = await addItem(data);
+    btn.disabled = false;
+
+    if(ok){
+      statusEl.textContent = "Опубликовано!";
+      document.getElementById("f-title").value = "";
+      document.getElementById("f-desc").value = "";
+      document.getElementById("f-loc").value = "";
+      document.getElementById("f-contact").value = "";
+      setTimeout(() => { statusEl.textContent = ""; }, 2000);
+    } else {
+      statusEl.textContent = "Не удалось опубликовать. Попробуйте ещё раз.";
+    }
+  };
+
+  // ---- render ----
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  // Normalize: lowercase + strip common Cyrillic/Latin diacritics-ish noise (ё->е) for more forgiving matching
+  function norm(s){
+    return String(s||"")
+      .toLowerCase()
+      .replace(/ё/g,"е")
+      .replace(/[^\p{L}\p{N}\s]/gu," ")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+
+  function highlight(text, terms){
+    if(!terms.length) return escapeHtml(text);
+    const escaped = escapeHtml(text);
+    // Build a regex matching any of the raw (non-normalized) search words, case-insensitive
+    const pattern = terms
+      .map(t => t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"))
+      .filter(Boolean)
+      .join("|");
+    if(!pattern) return escaped;
+    try{
+      return escaped.replace(new RegExp("("+pattern+")","gi"), "<mark>$1</mark>");
+    }catch(e){ return escaped; }
+  }
+
+  function scoreItem(it, termsNorm){
+    const fields = {
+      title: norm(it.title),
+      description: norm(it.description),
+      location: norm(it.location),
+      category: norm(it.category)
+    };
+    let score = 0;
+    for(const term of termsNorm){
+      let matchedThisTerm = false;
+      if(fields.title.includes(term)){ score += 5; matchedThisTerm = true; }
+      if(fields.location.includes(term)){ score += 4; matchedThisTerm = true; }
+      if(fields.category.includes(term)){ score += 3; matchedThisTerm = true; }
+      if(fields.description.includes(term)){ score += 1; matchedThisTerm = true; }
+      if(fields.title.split(" ").some(w => w.startsWith(term))) score += 1;
+      if(!matchedThisTerm) return -1; // require every search word to match somewhere (AND logic)
+    }
+    return score;
+  }
+
+  function render(){
+    const listEl = document.getElementById("list");
+    const countEl = document.getElementById("resultCount");
+
+    const rawTerms = searchTerm.split(/\s+/).filter(Boolean);
+    const termsNorm = rawTerms.map(norm).filter(Boolean);
+
+    let filtered = items.filter(it => activeCat === "Все" || it.category === activeCat);
+
+    if(termsNorm.length){
+      filtered = filtered
+        .map(it => ({ it, score: scoreItem(it, termsNorm) }))
+        .filter(x => x.score >= 0)
+        .sort((a,b) => b.score - a.score)
+        .map(x => x.it);
+    }
+
+    countEl.textContent = filtered.length + (filtered.length === 1 ? " вариант найден" : " вариантов найдено");
+
+    if(filtered.length === 0){
+      listEl.innerHTML = termsNorm.length
+        ? '<div class="empty">Ничего не нашлось по запросу «'+escapeHtml(searchTerm)+'».<br>Попробуйте другое слово или снимите фильтр по категории.</div>'
+        : '<div class="empty">Пока ничего не найдено.<br>Будьте первым, кто опубликует вариант 👆</div>';
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(it => `
+      <div class="listing">
+        <div class="listing-top">
+          <h3>${highlight(it.title, rawTerms)}</h3>
+          <span class="cat-badge">${escapeHtml(it.category||"Другое")}</span>
+        </div>
+        <p>${highlight(it.description, rawTerms)}</p>
+        <div class="meta">
+          <span>📍 ${highlight(it.location, rawTerms)}</span>
+        </div>
+        <button class="contact-btn" onclick="navigator.clipboard && navigator.clipboard.writeText('${escapeHtml(it.contact).replace(/'/g,"\\'")}'); this.textContent='Контакт скопирован ✓'; setTimeout(()=>{this.textContent='📞 ${escapeHtml(it.contact).replace(/'/g,"\\'")}'},1500)">📞 ${escapeHtml(it.contact)}</button>
+        <div>
+          <button class="del" onclick="window.__delItem('${it.id}')">Удалить</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  window.__delItem = function(id){
+    if(confirm("Удалить этот вариант?")) deleteItem(id);
+  };
+
+  initDb();
+})();
+</script>
+</body>
+</html>
